@@ -1,0 +1,24 @@
+from flask import Flask, request, jsonify
+import pickle
+import numpy as np
+
+# Load model
+with open('credit_risk_model.pkl', 'rb') as file:
+    model = pickle.load(file)
+
+app = Flask(__name__)
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    try:
+        data = request.get_json(force=True)
+        print("✅ Received:", data)
+        features = np.array(data['features']).reshape(1, -1)    #Converts the array from 1D to 2D → required shape for prediction.
+        prediction = model.predict(features)[0]
+        return jsonify({'prediction': int(prediction)})
+    except Exception as e:
+        print("❌ Error:", str(e))
+        return jsonify({'error': str(e)})
+
+if __name__ == '__main__':
+    app.run(debug=True)
